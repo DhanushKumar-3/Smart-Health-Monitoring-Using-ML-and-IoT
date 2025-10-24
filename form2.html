@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Health Monitoring - Doctor Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: linear-gradient(to right, #141e30, #243b55);
+      --text: #ffffff;
+      --box-bg: rgba(255, 255, 255, 0.1);
+      --box-border: rgba(255, 255, 255, 0.2);
+      --primary: #00c6ff;
+    }
+
+    [data-theme="light"] {
+      --bg: #f0f0f0;
+      --text: #111;
+      --box-bg: #fff;
+      --box-border: #ccc;
+      --primary: #007bff;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      padding: 30px;
+      transition: all 0.3s ease;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .box {
+      background: var(--box-bg);
+      padding: 25px;
+      margin-bottom: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--box-border);
+      animation: fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+
+    .box h2 {
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
+
+    span {
+      font-weight: 600;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid var(--box-border);
+    }
+
+    th {
+      background: rgba(0, 198, 255, 0.2);
+    }
+
+    .icon {
+      margin-right: 8px;
+      color: var(--primary);
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      resize: vertical;
+      margin-top: 10px;
+      font-size: 16px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background: #0072ff;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .toggle-label {
+      cursor: pointer;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.4s ease;
+      z-index: 999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="controls no-print">
+    <label class="toggle-label">
+      <input type="checkbox" id="modeToggle" />
+      <i class="fas fa-moon icon"></i><span>Dark / Light Mode</span>
+    </label>
+    <button onclick="window.print()" class="no-print"><i class="fas fa-print"></i> Print</button>
+  </div>
+
+  <h1><i class="fas fa-stethoscope icon"></i>Smart Health Monitoring - Doctor Panel</h1>
+
+  <div class="box">
+    <h2><i class="fas fa-user icon"></i>Patient Details</h2>
+    <p><i class="fas fa-user icon"></i>Name: <span id="name"></span></p>
+    <p><i class="fas fa-calendar-alt icon"></i>Age: <span id="age"></span></p>
+    <p><i class="fas fa-venus-mars icon"></i>Gender: <span id="gender"></span></p>
+    <p><i class="fas fa-phone icon"></i>Mobile: <span id="mobileNumber"></span></p>
+  </div>
+
+  <div class="box">
+    <h2><i class="fas fa-laptop-medical icon"></i>Live Health Metrics</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>BPM</th>
+          <th>SPO2</th>
+          <th>Temperature</th>
+          <th>Humidity</th>
+          <th>PPG</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr id="dataRow">
+          <td colspan="6">Fetching metrics...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="box">
+    <h2><i class="fas fa-prescription-bottle-alt icon"></i>Enter Prescription</h2>
+    <form id="prescriptionForm">
+      <textarea id="prescription" name="prescription" rows="4" placeholder="Write prescription here..."></textarea>
+      <button type="submit"><i class="fas fa-paper-plane"></i> Submit Prescription</button>
+    </form>
+  </div>
+
+  <div class="toast" id="toast">Message</div>
+
+  <script>
+    const themeToggle = document.getElementById("modeToggle");
+    const toast = document.getElementById("toast");
+
+    // Theme toggle
+    themeToggle.addEventListener("change", () => {
+      document.documentElement.setAttribute("data-theme", themeToggle.checked ? "light" : "dark");
+    });
+
+    // Toast message
+    function showToast(message, isSuccess = true) {
+      toast.textContent = message;
+      toast.style.background = isSuccess ? "#28a745" : "#dc3545";
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    // Set patient details from localStorage
+    document.getElementById('name').textContent = localStorage.getItem('patientName') || 'N/A';
+    document.getElementById('age').textContent = localStorage.getItem('patientAge') || 'N/A';
+    document.getElementById('gender').textContent = localStorage.getItem('patientGender') || 'N/A';
+    document.getElementById('mobileNumber').textContent = localStorage.getItem('patientPhone') || 'N/A';
+
+    // Fetch live health metrics
+    fetch("https://api.thingspeak.com/channels/1702450/feeds.json?api_key=0AXUWGSMKW3KDWX3")
+      .then(res => res.json())
+      .then(data => {
+        const latest = data.feeds[data.feeds.length - 1];
+        document.getElementById("dataRow").innerHTML = ` 
+          <td>${latest.field1 || '-'}</td>
+          <td>${latest.field2 || '-'}</td>
+          <td>${latest.field3 || '-'}</td>
+          <td>${latest.field4 || '-'}</td>
+          <td>${latest.field5 || '-'}</td>
+          <td>${latest.field6 || '-'}</td>`;
+      });
+
+    // Handle prescription form
+    document.getElementById('prescriptionForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const prescription = document.getElementById('prescription').value.trim();
+
+      if (!prescription) {
+        showToast('Enter prescription.', false);
+        return;
+      }
+
+      const prescriptionApiKey = 'ZKD2A60PEXQ13T8U';
+
+      fetch(`https://api.thingspeak.com/update.json?api_key=${prescriptionApiKey}&field1=${encodeURIComponent(prescription)}`, {
+        method: 'POST'
+      })
+      .then(res => res.json())
+      .then(data => showToast('Prescription submitted successfully!', true))
+      .catch(err => showToast('Failed to submit prescription.', false));
+    });
+  </script>
+</body>
+</html>

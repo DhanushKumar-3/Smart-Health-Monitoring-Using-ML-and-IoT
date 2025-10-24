@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PATIENT VIEW</title>
+    <style>
+        /* Global Styling */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #f7971e;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        /* Card Styling */
+        .card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            color: #f7971e;
+            margin-bottom: 20px;
+        }
+
+        .card table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .card th,
+        .card td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .card th {
+            background-color: #f2f2f2;
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            background-color: #333;
+            color: #f4f4f4;
+        }
+
+        body.dark-mode .card {
+            background-color: #444;
+            color: #f4f4f4;
+        }
+
+        body.dark-mode .card th {
+            background-color: #555;
+        }
+
+        body.dark-mode .card td {
+            border-bottom: 1px solid #555;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            background-color: #f7971e;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            color: white;
+        }
+
+        .toggle-btn:hover {
+            background-color: #f56b00;
+        }
+
+        /* Print Button Styling */
+        .print-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #f7971e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .print-btn:hover {
+            background-color: #f56b00;
+        }
+
+        /* Responsive Layout */
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .card {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button class="toggle-btn" onclick="toggleTheme()">🌙</button>
+
+    <h1>SMART HEALTH MONITORING - PATIENT VIEW </h1>
+
+    <div class="container">
+        <!-- Patient Details Card -->
+        <div class="card">
+            <h2>Patient Details</h2>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <td id="patientName">Loading...</td>
+                </tr>
+                <tr>
+                    <th>Age</th>
+                    <td id="patientAge">Loading...</td>
+                </tr>
+                <tr>
+                    <th>Gender</th>
+                    <td id="patientGender">Loading...</td>
+                </tr>
+                <tr>
+                    <th>Phone</th>
+                    <td id="patientPhone">Loading...</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Live Health Metrics Card -->
+        <div class="card">
+            <h2>Live Health Metrics</h2>
+            <table>
+                <tr>
+                    <th>BPM</th>
+                    <th>SPO2</th>
+                    <th>Temperature</th>
+                    <th>Humidity</th>
+                    <th>PPG</th>
+                    <th>Result</th>
+                </tr>
+                <tr id="dataRow">
+                    <td>Loading...</td>
+                    <td>Loading...</td>
+                    <td>Loading...</td>
+                    <td>Loading...</td>
+                    <td>Loading...</td>
+                    <td>Loading...</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Prescription Card -->
+        <div class="card">
+            <h2>Prescription</h2>
+            <table id="prescriptionTable">
+                <tr>
+                    <th>Prescription</th>
+                </tr>
+                <tr id="prescriptionRow">
+                    <td>Loading...</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Print Button -->
+        <button class="print-btn" onclick="printPage()">Print</button>
+    </div>
+
+    <script>
+        // Dark/Light Theme Toggle
+        function toggleTheme() {
+            document.body.classList.toggle("dark-mode");
+            const icon = document.querySelector(".toggle-btn");
+            icon.textContent = document.body.classList.contains("dark-mode") ? "🌞" : "🌙";
+        }
+
+        // Fetch Patient Details from localStorage
+        console.log(localStorage.getItem('patientPhone')); // Debugging the mobile number
+
+        document.getElementById('patientName').textContent = localStorage.getItem('patientName') || 'N/A';
+        document.getElementById('patientAge').textContent = localStorage.getItem('patientAge') || 'N/A';
+        document.getElementById('patientGender').textContent = localStorage.getItem('patientGender') || 'N/A';
+        document.getElementById('patientPhone').textContent = localStorage.getItem('patientPhone') || 'N/A';
+
+        // Fetch Live Health Metrics Data
+        const channelId = '1702450';
+        const apiKey = '0AXUWGSMKW3KDWX3';
+        const dataRow = document.getElementById('dataRow');
+        const prescriptionRow = document.getElementById('prescriptionRow');
+
+        fetch(`https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${apiKey}`)
+            .then(response => response.json())
+            .then(data => {
+                const latestEntry = data.feeds[data.feeds.length - 1];
+                const Temp = latestEntry.field1;
+                const BPM = latestEntry.field2;
+                const SPO2 = latestEntry.field3;
+                const PPG = latestEntry.field4;
+                const pH = latestEntry.field5;
+                const result = latestEntry.field6;
+
+                dataRow.innerHTML = `
+                    <td>${Temp}</td>
+                    <td>${BPM}</td>
+                    <td>${SPO2}</td>
+                    <td>${PPG}</td>
+                    <td>${pH}</td>
+                    <td>${result}</td>
+                `;
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+                dataRow.innerHTML = '<td colspan="6">Error loading data</td>';
+            });
+
+        // Fetch Prescription Data
+        const prescriptionChannelId = '596974';
+        fetch(`https://api.thingspeak.com/channels/${prescriptionChannelId}/feeds.json`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.feeds && data.feeds.length > 0) {
+                    const latestEntry = data.feeds[data.feeds.length - 1];
+                    const prescription = latestEntry.field1;
+
+                    prescriptionRow.innerHTML = `<td>${prescription}</td>`;
+                } else {
+                    console.error('No prescription data found.');
+                    prescriptionRow.innerHTML = '<td colspan="1">No prescription data found.</td>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching prescription data:', error);
+                prescriptionRow.innerHTML = '<td colspan="1">Error loading prescription data</td>';
+            });
+
+        // Print Function
+        function printPage() {
+            window.print();
+        }
+    </script>
+</body>
+
+</html>
